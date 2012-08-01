@@ -23,7 +23,7 @@ compilation) されます。
 ードを書くことに対して、強力なサポートがあります。その素敵で高レベルな特徴とし
 て、次のようなものがあります。
 
-* パターンマッチングおよび代数的データ型 (列挙型) - 関数型言語でよく使われてい
+* パターンマッチングおよび代数的データ型 (enum) - 関数型言語でよく使われてい
   るもので、 ADT のパターンマッチングはプログラムのロジックを記述するための、簡
   潔で表現しやすい方法を提供します。
 * タスクベース並列性 - Rust はメモリを共有しない軽量なタスクを用います。
@@ -633,11 +633,146 @@ Rust のレコード型は *structural* です。これは `{x: float, y: float}
 
 ## レコードのパターン
 
-## 列挙型
+レコードは `alt` パターンによって分解できます。基本的な構文は
+`{fieldname: pattern, ...}` ですが、フィールドと同名の変数を束縛する場合パター
+ンは省略可能です。
 
-## 列挙型のパターン
+~~~~
+# let mypoint = {x: 0f, y: 0f};
+alt mypoint {
+    {x: 0f, y: y_name} { /* Provide sub-patterns for fields */ }
+    {x, y}             { /* Simply bind the fields */ }
+}
+~~~~
+
+レコードのフィールド名は、型で現れるのと同じ順序でパターンに現れる必要はありま
+せん。レコードの全フィールドには興味がない場合、他のフィールドを無視することを
+示すために、レコードパターンを `, _` で終えます (`{field1, _}` のように) 。
+
+## enum
+
+enum はいくつかの異なった表現を持つデータ型です。さきほど示した例を考えましょう。
+
+~~~~
+# type point = {x: float, y: float};
+enum shape {
+    circle(point, float),
+    rectangle(point, point)
+}
+~~~~
+
+この型の値は circle か rectangle のどちらか一方であり、 circle の場合は point
+レコードと float 、 rectangle の場合は二つの point レコードを持ちます。このよう
+な値の実行時表現には、実際に保持している形式を識別するための ID が含まれていま
+す。これは C での「タグ付き共用体」に非常に似ていますが、人間工学的により良いも
+のです (with better ergonomics) 。
+
+上の宣言は、これらに対応する型 (XXX: 原文の refer to はポインタ的な意味ではない
+はず。要確認)  `shape` を定義し、さらに値を構築するために使う関数 `circle` と
+`rectangle` を定義します (指定された型の引数を取ります) 。よって、
+`circle({x: 0f, y: 0f}, 10f)` とすると、新しい circle が作られます。
+
+enum ヴァリアントは必ずしも型パラメタを持つ必要はありません。次の例は C の enum
+と等価です。
+
+~~~~
+enum direction {
+    north,
+    east,
+    south,
+    west
+}
+~~~~
+
+これは `north`, `east`, `south`, `west` を定数として定義し、その型は全て
+`direction` になります。
+
+enum が C ライクなとき、つまりパラメタを取るヴァリアントが存在しない場合、識別
+子 (discriminator) の値を明示的に設定できます。
+
+~~~~
+enum color {
+  red = 0xff0000,
+  green = 0x00ff00,
+  blue = 0x0000ff
+}
+~~~~
+
+明示的な識別子がヴァリアントに指定されない場合、値は一つ前のヴァリアントの値 +
+1 になります。最初のヴァリアントが識別子を持たない場合、値は 0 になります。例え
+ば、 `north` の値は 0 、 `east` の値は 1 です。
+
+enum が C ライクなら、 `as` キャスト演算子を使うことで識別子の値が得られます。
+
+<a name="single_variant_enum"></a>
+
+単一のヴァリアントを持つ enum の特殊なケースがあります。これは、既に存在する型
+のシノニムではなく、新しく区別される型を定義するために使われます。
+
+~~~~
+enum gizmo_id = int;
+~~~~
+
+上の記述は次の省略表記です。
+
+~~~~
+enum gizmo_id { gizmo_id(int) }
+~~~~
+
+このような enum 型では、 dereference 単項演算子 `*` によって内容を取り出すこと
+ができます。
+
+~~~~
+# enum gizmo_id = int;
+let my_gizmo_id = gizmo_id(10);
+let id_int: int = *my_gizmo_id;
+~~~~
+
+## enum のパターン
+
+複数のヴァリアントを持つ enum 型では、 destructuring が内容を取り出す唯一の方法
+です。全てのヴァリアント構築子は、次の `area` の定義のように、パターンとして使
+えます。
+
+~~~~
+# type point = {x: float, y: float};
+# enum shape { circle(point, float), rectangle(point, point) }
+fn area(sh: shape) -> float {
+    alt sh {
+        circle(_, size) { float::consts::pi * size * size }
+        rectangle({x, y}, {x: x2, y: y2}) { (x2 - x) * (y2 - y) }
+    }
+}
+~~~~
+
+次は、パラメタのない enum をマッチングする別の例です。
+
+~~~~
+# type point = {x: float, y: float};
+# enum direction { north, east, south, west }
+fn point_from_direction(dir: direction) -> point {
+    alt dir {
+        north { {x:  0f, y:  1f} }
+        east  { {x:  1f, y:  0f} }
+        south { {x:  0f, y: -1f} }
+        west  { {x: -1f, y:  0f} }
+    }
+}
+~~~~
 
 ## タプル
+
+Rust のタプルはフィールドが名前を持たない (よってドット記法ではフィールドにアク
+セスできません) 点を除いて、レコードと全く同じように振舞います。タプルは 0 と 1
+を除く任意の数の引数を持てます (ただし、お好みで nil, `()` を空のタプルと考える
+こともできます) 。
+
+~~~~
+let mytup: (int, int, float) = (10, 20, 30.0);
+alt mytup {
+  (a, b, c) { log(info, a + b + (c as int)); }
+}
+~~~~
 
 # Rust のメモリモデル
 
@@ -709,7 +844,7 @@ Rust には、オブジェクトを割り当てられる 3 つの領域、スタ
 
 # ボックスとポインタ
 
-多くの現代的な言語とは対照的に、レコード型や列挙型はヒープ上に確保したメモリへ
+多くの現代的な言語とは対照的に、レコード型や enum はヒープ上に確保したメモリへ
 のポインタとして表されません。それらは C や C++ のように直接に表されます。これ
 は `let x = {x: 1f, y: 1f};` と記述したら、スタック上にレコードが作られることを
 意味します。それをデータ構造へコピーしたら、ポインタではなくレコード全体がコピー
