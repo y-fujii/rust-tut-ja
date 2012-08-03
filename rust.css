@@ -1,7 +1,7 @@
 body {
   padding: 1em;
   margin: 0;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  /* font-family: "Helvetica Neue", Helvetica, sans-serif; */
   background-color: white;
   color: black;
 }
@@ -22,7 +22,7 @@ h3 { font-size: 14pt; }
 pre {
   margin: 1.1em 0;
   padding: .4em .4em .4em 2em;
-  font-size: 120%;
+  /* font-size: 120%; */
 }
 
 a, a:visited, a:link {
@@ -81,4 +81,20 @@ blockquote {
     border-left: solid 1px silver;
     margin: 1em;
     padding: 0.5em 1em 0.5em 1em;
+}
+
+/* Japanese specific */
+
+body {
+	line-height: 1.8;
+}
+
+pre, code {
+	font-family: this_is_a_workaround, monospace;
+	line-height: 1.2;
+}
+
+p, li {
+	text-align: justify;
+	text-justify: inter-ideograph;
 }
