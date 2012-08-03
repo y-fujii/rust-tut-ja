@@ -1,0 +1,17 @@
+diff -r b0213fd2ba31 prep.js
+--- a/prep.js	Fri Aug 03 16:26:46 2012 +0900
++++ b/prep.js	Sat Aug 04 00:16:04 2012 +0900
+@@ -60,9 +60,10 @@
+       var html = '<pre class="cm-s-default">', curstr = "", curstyle = null;
+       function add(str, style) {
+         if (style != curstyle) {
+-          if (curstyle) html += '<span class="cm-' + curstyle + '">' + curstr
+-            + "</span>";
+-          else if (curstr) html += curstr;
++          if (curstyle) html +=
++            '<span class="cm-' + CodeMirror.htmlEscape(curstyle) + '">' +
++            CodeMirror.htmlEscape(curstr) + "</span>";
++          else if (curstr) html += CodeMirror.htmlEscape(curstr);
+           curstr = str; curstyle = style;
+         } else curstr += str;
+       }
