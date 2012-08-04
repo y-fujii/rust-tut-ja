@@ -1,29 +1,36 @@
 body {
-  padding: 1em;
-  margin: 0;
-  /* font-family: "Helvetica Neue", Helvetica, sans-serif; */
-  background-color: white;
-  color: black;
+	font-family: sans-serif;
+	line-height: 1.8;
+	margin: 2em auto;
+	max-width: 48em;
 }
 
-body {
-  padding: 1em 6em;
-  max-width: 60em;
+pre, code {
+	font-family: this_is_a_workaround, monospace;
+	line-height: 1.2;
+}
+
+p, li {
+	text-align: justify;
+	text-justify: inter-ideograph;
 }
 
 h1 {
-  font-size: 22pt;
-  margin-top: 2em;
-  border-bottom: 2px solid silver;
+	margin-top: 2em;
+	border-bottom: 2px solid silver;
 }
-h2 { font-size: 17pt; }
-h3 { font-size: 14pt; }
 
 pre {
-  margin: 1.1em 0;
-  padding: .4em .4em .4em 2em;
-  /* font-size: 120%; */
+	padding-left: 2em;
 }
+
+blockquote {
+    margin: 1em 0em;
+    padding-left: 1em;
+    border-left: solid 2px silver;
+}
+
+/* End Japanese specific */
 
 a, a:visited, a:link {
   text-decoration: none;
@@ -74,28 +81,4 @@ h1.title {
 a.lessimportant {
   color: gray;
   font-size: 60%;
-}
-
-blockquote {
-    color: black;
-    border-left: solid 1px silver;
-    margin: 1em;
-    padding: 0.5em 1em 0.5em 1em;
-}
-
-/* Japanese specific */
-
-body {
-	font-family: sans-serif;
-	line-height: 1.8;
-}
-
-pre, code {
-	font-family: this_is_a_workaround, monospace;
-	line-height: 1.2;
-}
-
-p, li {
-	text-align: justify;
-	text-justify: inter-ideograph;
 }
