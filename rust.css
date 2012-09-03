@@ -15,6 +15,10 @@ p, li {
 	text-justify: inter-ideograph;
 }
 
+dd p {
+	margin-top: 0;
+}
+
 h1 {
 	margin-top: 2em;
 	border-bottom: 2px solid silver;
