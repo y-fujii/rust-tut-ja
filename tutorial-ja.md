@@ -1086,7 +1086,135 @@ call_twice(bare_function);
 
 ## do 構文
 
+Rust のクロージャは高階関数と連携して、 `if` や `loop` のような制御構造をシミュ
+レートするために頻繁に用いられます。整数のベクタをイテレーションし、それぞれの
+要素にオペレータを適用する関数を考えましょう。
+
+~~~~
+fn each(v: ~[int], op: fn(int)) {
+   let mut n = 0;
+   while n < v.len() {
+       op(v[n]);
+       n += 1;
+   }
+}
+~~~~
+
+呼び出し側で最後のオペレータの引数を提供するためにクロージャを使うと、心地良い
+ブロックのような構造を持つ方法で記述できます。
+
+~~~~
+# fn each(v: ~[int], op: fn(int)) {}
+# fn do_some_work(i: int) { }
+each(~[1, 2, 3], |n| {
+    #debug("%i", n);
+    do_some_work(n);
+});
+~~~~
+
+これは役立つパターンなので、 Rust は組み込みの制御構造により近い記述が可能な、
+関数呼び出しの特別な形式を用意しています。
+
+~~~~
+# fn each(v: ~[int], op: fn(int)) {}
+# fn do_some_work(i: int) { }
+do each(~[1, 2, 3]) |n| {
+    #debug("%i", n);
+    do_some_work(n);
+}
+~~~~
+
+呼び出しは `do` キーワードが前に付けられ、最後のクロージャを引数リストの中に記
+述する代わりに、典型的なコードブロックと視覚的により近い、パーレンの外に記述し
+ます。 `do` 式は、クロージャを引数の最後にとる呼び出しの純粋な糖衣構文です。
+
+`do` はタスクを生成するためによく用いられます。
+
+~~~~
+import task::spawn;
+
+do spawn() || {
+    #debug("I'm a task, whatever");
+}
+~~~~
+
+これは素敵ではありますが、バーと括弧に注目してください。立て続けに二つの空の引
+数リストを構成しています。これらが存在しなかったら素晴らしいに違いありません。
+
+~~~~
+# import task::spawn;
+do spawn {
+   #debug("Kablam!");
+}
+~~~~
+
+空の引数リストは `do` 式から省略できます。
+
 ## for ループ
+
+Rust でのほとんどのイテレーションは `for` ループで行われます。 `do` のように、
+`for` はクロージャでフローを制御するための素敵な構文です。加えて、 `for` ループ
+の中では `while` や `loop` と同じように、 `break`, `again`, `ret` が使えます。
+
+`each` 関数を再び考えましょう。今回は iteratee が `false` を返したら、すぐにル
+ープを抜け出すように改善します。
+
+~~~~
+fn each(v: ~[int], op: fn(int) -> bool) {
+   let mut n = 0;
+   while n < v.len() {
+       if !op(v[n]) {
+           break;
+       }
+       n += 1;
+   }
+}
+~~~~
+
+そして、ベクタをイテレーションするためにこの関数を使います。
+
+~~~~
+# import each = vec::each;
+# import println = io::println;
+each(~[2, 4, 8, 5, 16], |n| {
+    if n % 2 != 0 {
+        println(~"found odd number!");
+        false
+    } else { true }
+});
+~~~~
+
+`for` を使うことで、 `each` のような関数を組み込みのループ構造により近い形で扱
+えます。 `for` ループで `each` を呼び出す場合、ループから抜け出すために `false`
+を返す代わりに `break` と記述します。次のイテレーションの頭までスキップするには、
+`again` と記述します。
+
+~~~~
+# import each = vec::each;
+# import println = io::println;
+for each(~[2, 4, 8, 5, 16]) |n| {
+    if n % 2 != 0 {
+        println(~"found odd number!");
+        break;
+    }
+}
+~~~~
+
+加えて、 `for` ループの本体として現れるブロック内では、通常クロージャ内では許さ
+れない `ret` キーワードも使えます。これは単にループ本体から抜けるだけではなく、
+外側の関数から戻ります。
+
+~~~~
+# import each = vec::each;
+fn contains(v: ~[int], elt: int) -> bool {
+    for each(v) |x| {
+        if (x == elt) { ret true; }
+    }
+    false
+}
+~~~~
+
+`for` 構文はスタッククロージャとのみ働きます。
 
 # クラス
 
@@ -1405,3 +1533,27 @@ draw_all(~[c as drawable, r as drawable]);
 静的に解決されるメソッド呼び出しよりずっと高価です。
 
 ## インターフェイスなしの実装
+
+# Interacting with foreign code
+
+## Foreign modules
+
+## Foreign calling conventions
+
+## Unsafe pointers
+
+## Unsafe blocks
+
+## Pointer fiddling
+
+## Passing structures
+
+# Tasks
+
+## Spawning a task
+
+## Ports and channels
+
+## Creating a task with a bi-directional communication path
+
+# Testing
