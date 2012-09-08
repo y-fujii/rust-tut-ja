@@ -19,19 +19,23 @@ Rust は、型安全性、メモリ安全性、並列性、パフォーマンス
 を禁止します。他のシステム言語のように、静的に型付けされ、事前コンパイル (ahead
 of time compilation) されます。
 
-マルチパラダイム言語として、手続き的、関数的、オブジェクト指向的なスタイルでコ
-ードを書くことに対して、強力なサポートがあります。その素敵で高レベルな特徴とし
-て、次のようなものがあります。
+マルチパラダイム言語として、Rust は手続き的、関数的、オブジェクト指向的なスタイ
+ルでコードを記述することをサポートします。 Rust の素敵で高レベルな特徴として、
+次のようなものがあります。
 
-* パターンマッチングおよび代数的データ型 (enum) - 関数型言語でよく使われてい
-  るもので、 ADT のパターンマッチングはプログラムのロジックを記述するための、簡
-  潔で表現しやすい方法を提供します。
-* タスクベース並列性 - Rust はメモリを共有しない軽量なタスクを用います。
-* 高階関数 - Rust のクロージャはとてもパワフルで、至るところで使われます。
-* 多相性 - Rust の型システムは、 Java スタイルのインターフェイスと Haskell スタ
-  イルの型クラスのユニークな組み合わせを特徴としています。
-* ジェネリクス - 関数と型は総称型として、オプショナルな型制約を伴って型をパラメー
-  タ化できます。
+* ***パターンマッチングおよび代数的データ型 (enum) 。*** 関数型言語でよく使われ
+  ているもので、 ADT のパターンマッチングはプログラムのロジックを記述するための、
+  簡潔で表現しやすい方法を提供します。
+* ***タスクベース並列性。*** - Rust はメモリを共有しない軽量なタスクを用います。
+* ***高階関数。*** Rust の関数は引数としてクロージャをとったり、返り値としてク
+  ロージャを返すことが可能です。 Rust のクロージャはとてもパワフルで、いたる所
+  で使われます。
+* ***trait 多相性。*** Rust の型システムは _trait_ と呼ばれる、 Java スタイルの
+  インターフェイスと Haskell スタイルの型クラスのユニークな組み合わせを特徴とし
+  ています。
+* ***パラメータ多相性 (generics) 。*** 関数と型は、オプショナルな型制約を伴う型
+  変数でパラメータ化できます。
+* ***型推論。*** ローカル変数の宣言での型注釈 (type annotation) は省略可能です。
 
 ## ファーストインプレッション
 
@@ -45,76 +49,19 @@ fn boring_old_factorial(n: int) -> int {
         result *= i;
         i += 1;
     }
-    ret result;
+    return result;
 }
 ~~~~
 
 いくつか C と異なる部分が現れています。型は変数名の前ではなく後に置かれ、前にコ
 ロンが付きます。 `let` で導入されるローカル変数では型を省略可能で、省略した場合
 は推論されます。 `while` や `if` のような構文では条件式を囲む括弧は必要ありませ
-ん (ただし囲うことも許されます) 。また、キーワードは積極的に短縮される傾向にあ
-ります。例えば、 function は `fun` 、 return は `ret` のようにです。
+ん (囲うことも許されます) 。
 
 しかし、 Rust が単純な C の発展形であると結論しないでください。このチュートリア
 ルで明らかになるように、 Rust はたくさんの高レベルなイディオムのために、効率的
 で、強い型付けを持ち、メモリ安全性をサポートするという、全く違う方向性を持ちま
 す。
-
-ここにあなたの興味をそそる並列じゃんけんゲームがあります。
-
-~~~~
-use std;
-
-import comm::{listen, methods};
-import task::spawn;
-import iter::repeat;
-import rand::{seeded_rng, seed};
-import uint::range;
-import io::println;
-
-fn main() {
-    // ゲームの結果を受け取るためのチャンネルを開く。
-    do listen |result_from_game| {
-
-        let times = 10;
-        let player1 = ~"graydon";
-        let player2 = ~"patrick";
-
-        for repeat(times) {
-            // ゲームを行うための別タスクを開始する。
-            do spawn |copy player1, copy player2| {
-                let outcome = play_game(player1, player2);
-                result_from_game.send(outcome);
-            }
-        }
-
-        // ゲームが完了したら、結果を報告する。
-        for range(0, times) |round| {
-            let winner = result_from_game.recv();
-            println(#fmt("%s wins round #%u", winner, round));
-        }
-    }
-
-    fn play_game(player1: ~str, player2: ~str) -> ~str {
-
-        // グー/パー/チョキ の型
-        enum gesture {
-            rock, paper, scissors
-        }
-
-        let rng = seeded_rng(seed());
-        // 手を選ぶ小さなインライン関数
-        let pick = || (~[rock, paper, scissors])[rng.gen_uint() % 3];
-
-        // 二つの手を選び、結果を判断する。
-        alt (pick(), pick()) {
-            (rock, scissors) | (paper, rock) | (scissors, paper) { copy player1 }
-            (scissors, rock) | (rock, paper) | (paper, scissors) { copy player2 }
-            _ { ~"tie" }
-        }
-    }
-}
-~~~~
 
 ## 慣例
 
@@ -193,8 +140,8 @@ Rust のプログラムファイルは、慣例として拡張子 `.rs` が与�
 ファイル `hello.rs` があるとします。
 
 ~~~~
-fn main(args: ~[~str]) {
-    io::println(~"hello world from '" + args[0] + ~"'!");
+fn main() {
+    io::println("hello world!");
 }
 ~~~~
 
@@ -207,7 +154,7 @@ Rust コンパイラが正しくインストールされていれば、 `rustc h
 
 ~~~~ {.notrust}
 hello.rs:2:4: 2:16 error: unresolved name: io::print_it
-hello.rs:2     io::print_it(~"hello world from '" + args[0] + ~"'!");
+hello.rs:2     io::print_it("hello world!");
                ^~~~~~~~~~~~
 ~~~~
 
@@ -215,22 +162,27 @@ Rust コンパイラはエラーに出くわしたとき、役立つ情報を提
 
 ## Rust プログラムの構造
 
-一番単純な形式の Rust プログラムは、型と関数が定義されている `.rs` ファイルだけ
-から成ります。もし `main` 関数が存在すれば、実行形式にコンパイルできます。 Rust
+一番単純な形式の Rust プログラムは、いくつかの型と関数が定義されている `.rs` フ
+ァイルです。もし `main` 関数が存在すれば、実行形式にコンパイルできます。 Rust
 は、宣言でないコードがファイルのトップレベルに現れることを許しません。つまり、
 全てのステートメントは関数内になければいけません。
 
 Rust プログラムはライブラリとしてもコンパイルでき、他のプログラムにインクルード
 され得ます。
-多く例の一番上に現れる `use std` ディレクティブは、[標準ライブラリ][std]をイン
-ポートします。これについては[後ほど](#modules-and-crate)より詳細に記述します。
+多く例の一番上に現れる `extern mod std` ディレクティブは、[標準ライブラリ][std]
+をインポートします。これについては[後ほど](#modules-and-crate)より詳細に記述し
+ます。
 
 [std]: http://doc.rust-lang.org/doc/std
 
 ## Rust コードの編集
 
 Rust のソース配布物の `src/etc/vim/` に Vim のハイライトとインデントを行うスク
-リプトが、また `src/etc/emacs/` に emacs mode があります。
+リプトが、また `src/etc/emacs/` に emacs mode があります。 Sublime Text 2 のた
+めのパッケージが
+[github.com/dbp/sublime-rust](http://github.com/dbp/sublime-rust) にあり、
+[package control](http://wbond.net/sublime_packages/package_control) からも利用
+可能です。
 
 他のエディタ向けのものはまだ提供されていません。もしあなたが好きなエディタ向け
 の Rust モードを書いたら、私たちがリンクできるよう知らせてください。
@@ -244,26 +196,24 @@ Rust のソース配布物の `src/etc/vim/` に Vim のハイライトとイン
 トメントと `while` ループの本体をブラケットで囲む*必要がある*ということです。単一
 のステートメントであっても、ブラケットで囲われていない本体は許されません。
 
-この冗長性が煩わしいと感じるなら、こうすることで `if`, `while` やその他の似た構
-文で、条件式のまわりの括弧を省略できるという事実を考えてみてください。これは常
-に 2 文字をセーブできます。ついでに、ブレースを追加する必要があるかどうか決めた
-り、 `if` のブランチにステートメントを追加した後にブレースを追加するのにエネル
-ギーを費やす必要もなくなります。
-
 これらの違いを理解すれば、 Rust のステートメントと式の表面的な構文は C ライクで
 す。関数呼び出しは `myfunc(arg1, arg2)` と記述され、演算子は C とおおむね同じ名
 前と優先順位を持ち、コメントは同じであり、 `if` や `while` のような構文が利用で
 きます。
 
 ~~~~
-# fn call_a_function(_a: int) {}
+# fn it_works() {}
+# fn abort() {}
 fn main() {
-    if 1 < 2 {
-        while false { call_a_function(10 * 4); }
-    } else if 4 < 3 || 3 < 4 {
-        // C++ スタイルのコメント
-    } else {
-        /* 複数行コメントの構文 */
+    while true {
+        /* Ensure that basic math works. */
+        if 2*20 > 30 {
+            // Everything is OK.
+            it_works();
+        } else {
+            abort();
+        }
+        break;
     }
 }
 ~~~~
@@ -271,33 +221,42 @@ fn main() {
 ## 式の構文
 
 全てのコード上で明白なわけではありませんが、 Rust の構文と C 系統の先行する言語
-との間には基本的な違いがあります。 C ではステートメントであるたくさんのものが、
-Rust では式です。これは次のような無益なもの (関数に void 型の nil を渡す) を許
-します。
+との間には基本的な違いがあります。 C ではステートメントであるたくさんの構成物が、
+Rust では式です。これは Rust をより表現豊かにします。例えば、あなたは次のような
+コードを書いたことがあるかもしれません。
 
 ~~~~
-# fn a_function(_a: ()) {}
-a_function(while false {});
+# let item = "salad";
+let price;
+if item == "salad" {
+    price = 3.50;
+} else if item == "muffin" {
+    price = 2.25;
+} else {
+    price = 2.00;
+}
 ~~~~
 
-しかし同時に、次のような有益なものも許されます。
+しかし Rust では名前 `price` をくり返す必要はありません。
 
 ~~~~
-# fn the_stars_align() -> bool { false }
-# fn something_else() -> bool { true }
-let x = if the_stars_align() { 4 }
-        else if something_else() { 3 }
-        else { 0 };
+# let item = "salad";
+let price = if item == "salad" { 3.50 }
+            else if item == "muffin" { 2.25 }
+            else { 2.00 };
 ~~~~
 
-このコードは `x` に、条件に依存する値を束縛します。条件の中身、
-`{ expression }` に注意してください。ブレースで囲まれたブロックにおいて、最後の
-ステートメントの後のセミコロンがない場合、ブロック全体には最後の式の値が与えら
-れます。もし `if` のブランチが `{ 4; }` のようになっていたら、上の例は単に `x`
-に nil (void) が代入されます。しかしセミコロンなしだと、それぞれのブランチは違
-う値を持ち、 `x` は実行されるブランチの値になります。
+二つのコードは厳密に等価です。つまり、条件に依って `price` に値を代入します。二
+つ目のコードからセミコロンが省略されていることに注意してください。これは重要で
+す。波括弧で囲まれたブロック内で、最後のステートメントの後ろにセミコロンがない場
+合、ブロック全体に最後の式の値が与えられます。
 
-これは関数本体でも有効です。次の関数はブール値を返します。
+別の言い方をすると、 Rust でのセミコロンは*式の値を無視します*。よって、 `if`
+のブランチが `{ 4; }` のようになっていたら、上述の例は `price` に nil (void) が
+単に代入されます。しかしセミコロンがないと、それぞれのブランチが違う値を持ち、
+`price` は実行されるブランチの値になります。
+
+この特徴は関数本体でも有効です。次の関数はブール値を返します。
 
 ~~~~
 fn is_four(x: int) -> bool { x == 4 }
@@ -317,20 +276,14 @@ expression) セミコロンが必要です。 `while` ループは終端に式�
 
 ## 識別子
 
-Rust の識別子はアルファベットかアンダースコアから始まり、その後に英数字とアンダー
-スコアが続きます。
+Rust の識別子は C と同じ規則に従います。つまり、アルファベットかアンダースコア
+から始まり、その後はアルファベット、数字、またはアンダースコアの列を含むことが
+可能です。関数、変数、モジュール名は小文字で始め、可読性を助けるところでアンダ
+ースコアを用い、一方で型は大文字で始めるのが、好まれるスタイルです。
 
 ダブルコロン (`::`) はモジュールセパレータとして使われます。なので、
 `io::println` は「 `io` という名前のモジュール内にある、 `println` という名前の
 もの」を意味します。
-
-Rust は通常、使われていない変数に対して警告を出します。これはアンダースコアから
-始まる変数名を使うことで抑制できます。
-
-~~~~
-fn this_warns(x: int) {}
-fn this_doesnt(_x: int) {}
-~~~~
 
 ## 変数宣言
 
@@ -339,19 +292,18 @@ fn this_doesnt(_x: int) {}
 入できます。グローバル定数は `const` で定義できます。
 
 ~~~~
-use std;
-const repeat: uint = 5u;
+const REPEAT: int = 5;
 fn main() {
-    let hi = ~"Hi!";
-    let mut count = 0u;
-    while count < repeat {
+    let hi = "Hi!";
+    let mut count = 0;
+    while count < REPEAT {
         io::println(hi);
-        count += 1u;
+        count += 1;
     }
 }
 ~~~~
 
-ローカル変数は前の宣言を隠し、前の変数をスコープから外す可能性があります。
+ローカル変数は前の宣言を隠し、前の変数をアクセス不可能にする可能性があります。
 
 ~~~~
 let my_favorite_value: float = 57.8;
@@ -359,23 +311,6 @@ let my_favorite_value: int = my_favorite_value as int;
 ~~~~
 
 ## 型
-
-`is_four` の例にある `-> bool` は、関数の戻り型を記述する方法です。意味のある値
-を返さない関数 (Rust では nil を返します) の場合、 `-> ()` (`()` は nil の記述
-法) とオプショナルに記述できます。しかし、今まで見てきた `fn main() { ...}` の
-ように、普通は戻り型の注釈は単に省略します。
-
-関数の引数は全て `x: int` のように型を宣言する必要があります。関数内ではほとん
-どのローカルなものに対し、型推論が可能です (後述する総称関数はときどき注釈が必
-要です) 。ローカルなものは型注釈ありでもなしでも記述できます。
-
-~~~~
-// The type of this vector will be inferred based on its use.
-let x = ~[];
-# vec::map(x, fn&(&&_y:int) -> int { _y });
-// Explicitly say this is a vector of integers.
-let y: ~[int] = ~[];
-~~~~
 
 基本型は次のように記述します。
 
@@ -397,155 +332,126 @@ let y: ~[int] = ~[];
 `u8`, `u16`, `u32`, `u64`
   : Unsigned integers with a specific size.
 
-`f32`, `f64`
-  : Floating-point types.
-
 `float`
-  : The largest floating-point type efficiently supported on the target machine.
+  : The largest floating-point type efficiently supported on the target
+    machine.
+
+`f32`, `f64`
+  : Floating-point types with a specific size.
 
 `char`
-  : A character is a 32-bit Unicode code point.
-
-`~str`
-  : String type. A string contains a UTF-8 encoded sequence of characters.
+  : A Unicode character (32 bits).
 
 これらは複合型 (詳細は後述) と組み合わせられます。ここで `T` は任意の型を表しま
 す。
 
-`~[T]`
-  : Vector type.
+`[T * N]`
+  : Vector (like an array in other languages) with N elements.
 
-`~[mut T]`
-  : Mutable vector type.
+`[mut T * N]`
+  : Mutable vector with N elements.
 
 `(T1, T2)`
   : Tuple type. Any arity above 1 is supported.
 
-`{field1: T1, field2: T2}`
-  : Record type.
+`@T`, `~T`, `&T`
+  : Pointer types. See [Boxes and pointers](#boxes-and-pointers) for an explanation of what `@`, `~`, and `&` mean.
 
-`fn(arg1: T1, arg2: T2) -> T3`, `fn@()`, `fn~()`, `fn&()`
+Some types can only be manipulated by pointer, never directly. For instance,
+you cannot refer to a string (`str`); instead you refer to a pointer to a
+string (`@str`, `~str`, or `&str`). These *dynamically-sized* types consist
+of:
+
+`fn(arg1: T1, arg2: T2) -> T3`
   : Function types.
 
-`@T`, `~T`, `*T`
-  : Pointer types.
+`str`
+  : String type (in UTF-8).
+
+`[T]`
+  : Vector with unknown size (also called a slice).
+
+`[mut T]`
+  : Mutable vector with unknown size.
 
 型は `type` 宣言により名前を与えることが可能です。
 
 ~~~~
-type monster_size = uint;
+type MonsterSize = uint;
 ~~~~
 
-これは符号無し整数型に `moster_size` というシノニムを提供します。
-`monster_size` という新しい型を作るのではありません。 `monster_size` と `uint`
+これは符号無し整数型に `MonsterSize` というシノニムを提供します。 `MonsterSize`
+という新しい、非互換の型を実際に作るのではありません。 `MonsterSize` と `uint`
 は互いに交換可能な形で使え、一方の名前が期待される場所でもう一方の名前を使って
-も型エラーを引き起こしません。単なるシノニムでない型を作る必要があるなら、 
+も型エラーを引き起こしません。単なるシノニムでない型を作る必要があるなら、
 [single-variant enums](#single_variant_enum) を読んでください。
+
+## 型の使用
+
+`is_four` の例にある `-> bool` は、関数の戻り型を記述する方法です。意味のある値
+を返さない関数については、 `-> ()` とオプショナルに記述できます。しかし、以前見
+た `fn main() { ...}` の例のように、通常は戻り型の注釈を単に省略します。
+
+関数の引数は全て `x: int` のように型を宣言する必要があります。関数内ではほとん
+どのローカルなものに対し、型推論が可能です (後述する総称関数はときどき注釈が必
+要です) 。ローカルなものは型注釈ありでもなしでも記述できます。
+
+~~~~
+// The type of this vector will be inferred based on its use.
+let x = [];
+# vec::map(x, fn&(&&_y:int) -> int { _y });
+// Explicitly say this is a vector of zero integers.
+let y: [int * 0] = [];
+~~~~
 
 ## 数値リテラル
 
-整数は 10 進数 (`144`) 、16 進数 (`0x90`) 、 2 進数 (`0b10010000`) で記述できま
+整数は 10 進数 (`144`) 、16 進数 (`0x90`) 、 2 進数 (`0b10010000`) と記述できま
 す。サフィックスなしで (`3`, `-500`, etc.) 整数リテラルを書いたら、 Rust コンパ
-イラはその型を型注釈と周囲の関数のシグニチャから推論しようとします。次の例で
-`x` は `u16` の引数を取る関数に渡されるので、 `u16` と推論されます。
+イラはその型を周辺の型注釈と関数のシグニチャから推論しようとします。型注釈が全
+くない場合、 Rust はサフィックスのない整数リテラルを `int` 型と仮定します。整数
+リテラルをサフィックス付きで記述して、型の曖昧さを避けることも可能です。例えば、
+次のようにです。
 
 ~~~~
-let x = 3;
-
-fn identity_u16(n: u16) -> u16 { n }
-
-identity_u16(x);
+let x = 50;
+log(error, x); // x is an int
+let y = 100u;
+log(error, y); // y is an uint
 ~~~~
-
-一方で、プログラムがサフィックスのないリテラルの型について矛盾する情報を与える
-場合、エラーメッセージを受け取るでしょう。
-
-~~~~{.xfail-test}
-let x = 3;
-let y: i32 = 3;
-
-fn identity_u8(n: u8) -> u8 { n }
-fn identity_u16(n: u16) -> u16 { n }
-
-identity_u8(x);  // after this, `x` is assumed to have type `u8`
-identity_u16(x); // raises a type error (expected `u16` but found `u8`)
-identity_u16(y); // raises a type error (expected `u16` but found `i32`)
-~~~~
-
-型注釈が全くない場合、 Rust はサフィックスのない整数リテラルを `int` 型と仮定し
-ます。
-
-~~~~
-let n = 50;
-log(error, n); // n is an int
-~~~~
-
-整数リテラルをサフィックス付きで記述して、型の曖昧さを避けることも可能です。サ
-フィックス `i` と `u` はそれぞれ `int` と `uint` 型を表します。つまりリテラル
-`-3i` は `int` 型になり、 `127u` は `uint` 型になります。固定サイズの整数型に対
-しては、単にリテラルに型名を付け加えます。 `255u8`, `50i64` などです。
 
 Rust では整数型同士の暗黙の変換が行われないことに注意してください。 `uint` 型の
 変数に 1 を足すとき、 `+= 1u8` と書くと型エラーになります。
 
-浮動小数点数は `0.0`, `1e6`, `2.1e-7` と記述します。サフィックスなしだと、リテ
-ラルは `float` 型だと仮定されます。サフィックス `f32` と `f64` は特定の型を持つ
-リテラルを作るのに使えます。サフィックス `f` はドットや指数部なしで `float` リ
-テラルを記述するに使えます。 `3f` などです。
+浮動小数点数は `0.0`, `1e6`, `2.1e-7` と記述します。サフィックスがない場合、リ
+テラルは `float` 型であると仮定されます。サフィックス `f` (32-bit) と `l`
+(64-bit) は特定の型を持つリテラルを作るのに使えます。
 
 ## 他のリテラル
 
 nil リテラルは型と同じように `()` と記述します。キーワード `true` と `false` は
 ブールリテラルを生成します。
 
-文字リテラルは `'x'` のようにシングルクォートの間に記述します。非アスキー文字も
-記述できます。 (ソースファイルは utf-8 でエンコードするべきです) 。 Rust はバッ
-クスラッシュを用いて、いくつかのキャラクタエスケープを認識します。
-
-`\n`
-  : A newline (Unicode character 10).
-
-`\r`
-  : A carriage return (13).
-
-`\t`
-  : A tab character (9).
-
-`\\`, `\'`, `\"`
-  : Simply escapes the following character.
-
-`\xHH`, `\uHHHH`, `\UHHHHHHHH`
-  : Unicode escapes, where the `H` characters are the hexadecimal digits that
-    form the character code.
+文字リテラルは `'x'` のように、シングルクォート間に記述します。 C と同様に Rust
+はバックスラッシュを使って、いくつかのキャラクタエスケープを認識します。 `\n`,
+`\r`, `\t` がよく使われます。
 
 文字列リテラルもまた同じエスケープシーケンスを許容します。それらはダブルクォー
-トの間に記述されます (`"hello"`) 。 Rust の文字列は改行を含むことがあります。改
-行の前にバックスラッシュがある場合、改行とそれに続く空白は無視されます。従って
-次の例は `~"abc"` と等価です。
-
-~~~~
-let s = ~"a\
-         b\
-         c";
-~~~~
+ト間に記述されます (`"hello"`) 。 Rust の文字列は改行を含むことがあります。
 
 ## 演算子
 
 Rust の演算子に驚くようなところはほとんどありません。二項演算子は `*`, `/`,
-`%`, `+`, `-` (乗算、除算、剰余、加算、減算) で行われます。 `-` は negation す
-る単項演算子でもあります。
-
-シフト演算は `>>` (右シフト) 、 `<<` (左シフト) で行われます。右シフトは値が符
-号付きなら算術シフト、符号無しなら論理シフトです。論理ビット演算子は `&`, `|`,
-`^` (論理積、論理和、排他論理和) で、単項 `!` 演算子はビット反転 (またはブール
-値に適用された場合、ブール値の反転) に用いられます。
+`%`, `+`, `-` (乗算、除算、剰余、加算、減算) で行われます。 `-` は符号を反転す
+る単項演算子でもあります。 C と同様に、ビット演算子 `>>`, `<<`, `&`, `|`, `^`
+もサポートされます。整数型に対して `!` を適用すると、全てのビットが反転する (C
+での `~` のように) ことに注意してください。
 
 比較演算子は伝統的な `==`, `!=`, `<`, `>`, `<=`, `>=` です。ショートサーキット
 (遅延評価される) ブール演算子は `&&` (かつ) と `||` (または) と書かれます。
 
-Rust は型変換に `as` 演算子を使います。この演算子は、乗算と除算の次に高い優先順
-位を持ちます。左側に式、右側に型を取り、意味のある変換が存在する場合、式の結果
-を与えられた型に変換します。
+Rust では、型変換に `as` 演算子を使います。左側に式、右側に型を取り、意味のある
+変換が存在する場合、式の結果を与えられた型に変換します。
 
 ~~~~
 let x: float = 4.0;
@@ -558,96 +464,289 @@ C との主な違いは `++` と `--` がないことと、論理ビット演算
 は `(x & 2) > 0` を意味します。これはあなたが (C の熟練者でなければ) 期待したも
 のに、より近いはずです。
 
-## 属性
-
 ## 構文拡張
 
-# 制御構造
-
-## 条件文
-
-## パターンマッチ
-
-## 構造を分解する let
-
-## ループ
-
-## 失敗
-
-## アサーション
-
-## ロギング
-
-# 関数
-
-# 基本データ型
-
-Rust のコアデータ型は、 structual なレコードと、 enums (タグ付けされた共用体、
-代数的データ型) と、タプルです。これらはデフォルトで immutable です。
+*構文拡張*は言語に組み込まれておらず、代わりにライブラリによって提供される特殊
+形式です。構文拡張が使われていることを読み手に明確にするため、全ての構文拡張の
+名前は `!` で終わります。標準ライブラリは少数の構文拡張を定義していて、最も有用
+なのはコンパイル時に展開される `sprintf` スタイルのテキスト整形器 `fmt!` です。
 
 ~~~~
-type point = {x: float, y: float};
+io::println(fmt!("%s is %d", ~"the answer", 42));
+~~~~
 
-enum shape {
-    circle(point, float),
-    rectangle(point, point)
+`fmt!` は [printf][pf] がサポートするディレクティブのほとんどをサポートしますが、
+ディレクティブの型が引数の型に一致しない場合、コンパイルエラーになります。
+
+[pf]: http://en.cppreference.com/w/cpp/io/c/fprintf
+
+このチュートリアルの範囲を超えますが、マクロシステムを使ってあなた自身の構文拡
+張を定義できます。
+
+# Control structures
+
+## Conditionals
+
+We've seen `if` pass by a few times already. To recap, braces are
+compulsory, an optional `else` clause can be appended, and multiple
+`if`/`else` constructs can be chained together:
+
+~~~~
+if false {
+    io::println(~"that's odd");
+} else if true {
+    io::println(~"right");
+} else {
+    io::println(~"neither true nor false");
 }
 ~~~~
 
-## レコード
+The condition given to an `if` construct *must* be of type boolean (no
+implicit conversion happens). If the arms return a value, this value
+must be of the same type for every arm in which control reaches the
+end of the block:
 
-Rust のデータ型は `{field1: T1, field2: T2 [, ...]}` と記述します。ここで `T1`,
-`T2` は型を表します。レコードリテラルは同じ方法で記述しますが、型の代わりに式を
-書きます。これは C の構造体に非常に似ていて、メモリ上に同じ方法で置かれます (従
-って、 Rust から C の構造体を読むことが可能で、その逆も同様です) 。レコードのフ
-ィールドにアクセスするには、ドット演算子を用います (`mypoint.x`) 。
+~~~~
+fn signum(x: int) -> int {
+    if x < 0 { -1 }
+    else if x > 0 { 1 }
+    else { return 0 }
+}
+~~~~
+
+## Pattern matching
+
+Rust's `match` construct is a generalized, cleaned-up version of C's
+`switch` construct. You provide it with a value and a number of *arms*,
+each labelled with a pattern, and the code will attempt to match each pattern
+in order. For the first one that matches, the arm is executed.
+
+~~~~
+# let my_number = 1;
+match my_number {
+  0     => io::println("zero"),
+  1 | 2 => io::println("one or two"),
+  3..10 => io::println("three to ten"),
+  _     => io::println("something else")
+}
+~~~~
+
+There is no 'falling through' between arms, as in C—only one arm is
+executed, and it doesn't have to explicitly `break` out of the
+construct when it is finished.
+
+The part to the left of the arrow `=>` is called the *pattern*. Literals are
+valid patterns and will match only their own value. The pipe operator
+(`|`) can be used to assign multiple patterns to a single arm. Ranges
+of numeric literal patterns can be expressed with two dots, as in `M..N`. The
+underscore (`_`) is a wildcard pattern that matches everything.
+
+The patterns in an match arm are followed by a fat arrow, `=>`, then an
+expression to evaluate. Each case is separated by commas. It's often
+convenient to use a block expression for a case, in which case the
+commas are optional.
+
+~~~
+# let my_number = 1;
+match my_number {
+  0 => {
+    io::println("zero")
+  }
+  _ => {
+    io::println("something else")
+  }
+}
+~~~
+
+`match` constructs must be *exhaustive*: they must have an arm covering every
+possible case. For example, if the arm with the wildcard pattern was left off
+in the above example, the typechecker would reject it.
+
+A powerful application of pattern matching is *destructuring*, where
+you use the matching to get at the contents of data types. Remember
+that `(float, float)` is a tuple of two floats:
+
+~~~~
+use float::consts::pi;
+fn angle(vector: (float, float)) -> float {
+    match vector {
+      (0f, y) if y < 0f => 1.5 * pi,
+      (0f, y) => 0.5 * pi,
+      (x, y) => float::atan(y / x)
+    }
+}
+~~~~
+
+A variable name in a pattern matches everything, *and* binds that name
+to the value of the matched thing inside of the arm block. Thus, `(0f,
+y)` matches any tuple whose first element is zero, and binds `y` to
+the second element. `(x, y)` matches any tuple, and binds both
+elements to a variable.
+
+Any `match` arm can have a guard clause (written `if EXPR`), which is
+an expression of type `bool` that determines, after the pattern is
+found to match, whether the arm is taken or not. The variables bound
+by the pattern are available in this guard expression.
+
+## Let
+
+You've already seen simple `let` bindings. `let` is also a little fancier: it
+is possible to use destructuring patterns in it. For example, you can say this
+to extract the fields from a tuple:
+
+~~~~
+# fn get_tuple_of_two_ints() -> (int, int) { (1, 1) }
+let (a, b) = get_tuple_of_two_ints();
+~~~~
+
+This will introduce two new variables, `a` and `b`, bound to the
+content of the tuple.
+
+You may only use *irrefutable* patterns—patterns that can never fail to
+match—in let bindings. Other types of patterns, such as literals, are
+not allowed.
+
+## Loops
+
+`while` produces a loop that runs as long as its given condition
+(which must have type `bool`) evaluates to true. Inside a loop, the
+keyword `break` can be used to abort the loop, and `again` can be used
+to abort the current iteration and continue with the next.
+
+~~~~
+let mut cake_amount = 8;
+while cake_amount > 0 {
+    cake_amount -= 1;
+}
+~~~~
+
+`loop` is the preferred way of writing `while true`:
+
+~~~~
+let mut x = 5;
+loop {
+    x += x - 3;
+    if x % 5 == 0 { break; }
+    io::println(int::str(x));
+}
+~~~~
+
+This code prints out a weird sequence of numbers and stops as soon as
+it finds one that can be divided by five.
+
+For more involved iteration, such as going over the elements of a
+collection, Rust uses higher-order functions. We'll come back to those
+in a moment.
+
+# Functions
+
+Like all other static declarations, such as `type`, functions can be
+declared both at the top level and inside other functions (or modules,
+which we'll come back to [later](#modules-and-crates)).
+
+We've already seen several function definitions. They are introduced
+with the `fn` keyword, the type of arguments are specified following
+colons and the return type follows the arrow.
+
+~~~~
+fn repeat(string: &str, count: int) -> ~str {
+    let mut result = ~"";
+    for count.times {
+        result += string;
+    }
+    return result;
+}
+~~~~
+
+The `return` keyword immediately returns from the body of a function. It
+is optionally followed by an expression to return. A function can
+also return a value by having its top level block produce an
+expression.
+
+~~~~
+# const copernicus: int = 0;
+fn int_to_str(i: int) -> ~str {
+    if i == copernicus {
+        return ~"tube sock";
+    } else {
+        return ~"violin";
+    }
+}
+~~~~
+
+~~~~
+# const copernicus: int = 0;
+fn int_to_str(i: int) -> ~str {
+    if i == copernicus { ~"tube sock" }
+    else { ~"violin" }
+}
+~~~~
+
+Functions that do not return a value are said to return nil, `()`,
+and both the return type and the return value may be omitted from
+the definition. The following two functions are equivalent.
+
+~~~~
+fn do_nothing_the_hard_way() -> () { return (); }
+
+fn do_nothing_the_easy_way() { }
+~~~~
+
+# 基本データ型
+
+Rust のコアデータ型は、 struct 、 enum (タグ付けされた共用体、代数的データ型) 、
+タプルです。これらはデフォルトで変更不可能 (immutable) です。
+
+~~~~
+struct Point { x: float, y: float }
+
+enum Shape {
+    Circle(Point, float),
+    Rectangle(Point, Point)
+}
+~~~~
+
+## struct
+
+Rust の struct 型は、使用する前に `struct` 構文を用いて宣言する必要があります。
+`struct` 構文は `struct Name { field1: T1, field2: T2 [, ...] }` です。ここで
+`T1`, `T2`, ... は型を意味します。
+struct を構築するためには同じ構文を使用しますが、 `struct` を記述しません。例え
+ば `Point { x: 1.0, y: 2.0 }` です。
+
+struct は C の構造体に非常に似ていて、メモリ上に同じ方法で置かれます (従って、
+Rust から C の構造体を読むことが可能で、その逆も同様です) 。 struct のフィール
+ドにアクセスするには、ドット演算子を用います (`mypoint.x`) 。
 
 mutable にしたいフィールドは明示的に `mut` と記す必要があります。
 
 ~~~~
-type stack = {content: ~[int], mut head: uint};
+struct Stack {
+    content: ~[int],
+    mut head: uint
+}
 ~~~~
 
 このような型では、 `mystack.head += 1u` とできます。仮に `mut` を型から省略した
 場合、このような代入は型エラーになります。
 
-既に存在するレコードを基にして新しいレコードを作るためには、 `with` キーワード
-を用います。
+## struct のパターン
+
+struct は `match` パターンによって分解できます。基本的な構文は
+`Name {fieldname: pattern, ...}` です。
 
 ~~~~
-let oldpoint = {x: 10f, y: 20f};
-let newpoint = {x: 0f with oldpoint};
-assert newpoint == {x: 0f, y: 20f};
-~~~~
-
-これは新しいレコードを作り、リテラルで明示的にセットされる 1 つを除いて、
-`oldpoint` から全てのフィールドをコピーします。
-
-Rust のレコード型は *structural* です。これは `{x: float, y: float}` が単に新た
-な型を定義する方法というだけではなく、実際の型名であるということを意味します。
-レコード型は最初にそれを定義することなく使えます。モジュール A が
-`type point = {x: float, y: float}` を定義していて、モジュール B が A について
-何も知らないまま `{x: float, y: float}` を返す関数を定義しているとき、その返値
-をモジュール A 内で `point` として使えます。 (`type` が型に追加の名前を定義し、
-実際に新しい型を定義するわけではないことを思い出してください)
-
-## レコードのパターン
-
-レコードは `alt` パターンによって分解できます。基本的な構文は
-`{fieldname: pattern, ...}` ですが、フィールドと同名の変数を束縛する場合パター
-ンは省略可能です。
-
-~~~~
-# let mypoint = {x: 0f, y: 0f};
-alt mypoint {
-    {x: 0f, y: y_name} { /* Provide sub-patterns for fields */ }
-    {x, y}             { /* Simply bind the fields */ }
+# struct Point { x: float, y: float }
+# let mypoint = Point { x: 0.0, y: 0.0 };
+match mypoint {
+    Point { x: 0.0, y: y } => { io::println(y.to_str());                    }
+    Point { x: x, y: y }   => { io::println(x.to_str() + " " + y.to_str()); }
 }
 ~~~~
 
-レコードのフィールド名は、型で現れるのと同じ順序でパターンに現れる必要はありま
-せん。レコードの全フィールドには興味がない場合、他のフィールドを無視することを
-示すために、レコードパターンを `, _` で終えます (`{field1, _}` のように) 。
+一般に struct のフィールド名は、型で現れるのと同じ順序でパターンに現れる必要は
+ありません。レコードの全フィールドには興味がない場合、他のフィールドを無視する
+ことを示すために、レコードパターンを `, _` で終えます (`{field1, _}` のように) 。
 
 ## enum
 
@@ -783,54 +882,52 @@ alt mytup {
 
 Rust におけるメモリの見方を特徴付ける、三つの競合する目標があります。
 
-* メモリ安全性 - Rust 言語によって管理され、アクセスできるメモリは必ず有効である
-  ことが保証されます。一般的な状況下で、 Rust がセグメンテーションエラーやメモ
-  リリークを引き起こすことはあり得ません。
-* 性能 - 高パフォーマンスで低レベルなコードはたくさんのアロケーション戦略を採用
-  する傾向にあり、低パフォーマンスで高レベルなコードには、単一の GC を基本とし
-  たヒープアロケーション戦略がよく用いられます。
-* 並列性 - Rust は並列に動くコードに対してもメモリ安全性を保証します。
+* メモリ安全性: Rust 言語によって管理され、アクセスできるメモリは必ず有効である
+  ことが保証されます。つまり、一般的な状況下で Rust がセグメンテーションエラー
+  やメモリリークを引き起こすことは不可能です。
+* 性能: 高パフォーマンスで低レベルなコードでは、複数のアロケーション戦略を採用
+  できる必要があります。また、低パフォーマンスで高レベルなコードには、単一のガ
+  ーベッジコレクションを基本としたヒープアロケーション戦略を採用できる必要があ
+  ります。
+* 並列性: Rust は並列に動くコードに対しても、メモリ安全性を保証します。
 
 ## パフォーマンスの考慮がメモリモデルに与える影響
 
-Rust が提供するようなメモリ安全性の保証を行う多くの言語は、単一のアロケーション
-戦略を用います。つまりオブジェクトはヒープ上に存在して、必要とされている限り生
-存し、定期的にガーベジコレクションされます。これは概念的にも実装も非常に素直で
-す。しかし著しいコストがかかります。そのような言語はアロケーションのコストを改
-善する方法を積極的に追求する傾向にあります (Java 仮想マシンを考えてみてください) 。
-Rust はこの戦略を _共有ボックス (shared box)_ でサポートします。これはヒープ上
-に割り当てられるメモリで、複数の変数から参照されることがあります。
+強いメモリ安全性の保証を提供するほとんどの言語は、オブジェクト全てを管理するた
+めに、ガーベッジコレクションされるヒープに頼っています。これは概念的にも実装的
+にも素直です。しかし著しいコストがかかります。このアプローチの採る言語は、アロ
+ケーションのコストを改善する方法を積極的に追求する傾向にあります (Java 仮想マシ
+ンを考えてみてください) 。 Rust はこの戦略を _ 共有ボックス (shared box)_ でサ
+ポートします。これはヒープ上に割り当てられるメモリで、複数の変数から参照される
+ことがあります。
 
 対して C++ のような言語は、オブジェクトを割り当てる場所について、非常に正確な制
-御が可能です。特に高価なヒープアロケーションを避けるために、オブジェクトをスタ
-ック上に直接置くことがよく行われます。 Rust でも同じことが可能で、オブジェクト
-が破壊された後で変数がそれを参照することのないよう、コンパイラは賢い生存期間の
-解析を行います。
+御が可能です。特に高価なヒープアロケーションを避けて、オブジェクトをスタック上
+に直接置くことがよく行われます。 Rust でも同じことが可能で、スタックオブジェク
+トが破壊された後で変数から参照されないことを保証するため、コンパイラは賢い _ポ
+インタの生存期間の解析_ を使います。
 
 ## 並列性の考慮がメモリモデルに与える影響
 
 並列環境でのメモリ安全性は、同じメモリにアクセスする 2 つのスレッド間の競合条件
-を回避することを意味しがちです。
+を回避することに関係します。高レベル言語でさえ、多くの場合プログラムに競合条件
+のないことを保証するために、プログラマが正しくロックを行うことを要求します。
 
-高レベル言語でさえ頻繁にこの問題を解決することを避け、プログラムに競合条件のな
-いことを保証するため、プログラマが正しくロックを行うことを要求します (訳注: た
-ぶん unsure -> ensure) 。
+Rust は、メモリがタスク間で共有できないという立場からスタートします。他言語での
+経験から、各タスクのヒープを他から隔離する手法は信頼できる戦略で、プログラマに
+とって理解しやすいと証明されています。ヒープの隔離は、ガーベッジコレクションが
+各ヒープごとに独立して行われる、という利益もあります。 Rust はガーベッジコレク
+ションのために、 "stop the world" を行うことはありません。
 
-Rust は単純に、メモリがタスク間で共有できないという立場からスタートします。他言
-語での経験から、タスクのヒープをお互いに隔離する手法は信頼できる戦略で、プログ
-ラマにとって理解しやすいと証明されています。隔離されたヒープを持つことはまた、
-ガーベッジコレクションが各々のヒープごとに行われることを意味します。 Rust はガ
-ーベッジコレクションのために、 'stop the world' を行うことはありません。
+タスク間でヒープを完全に隔離することは、タスク間で転送されるあらゆるデータをコ
+ピーする必要があることを意味します。となるように思えます。これはタスク間通信を
+実装する上で十分に使える方法ですが、大きなデータ構造に対して非常に非効率です。
 
-Rust のタスクが完全に隔離されたヒープを持つなら、タスク間で転送されるあらゆるデ
-ータについて、コピーが必要となるように思えます。これはタスク間通信を実装する上
-で十分に使える方法ですが、大きなデータ構造に対して非常に非効率です。
-
-このため、 Rust はグローバルな「交換ヒープ (exchange heap) 」 を導入します。こ
-こに割り当てられたオブジェクトは _ownerwhip semantics_ を持ちます。これは一つの
-変数だけがそのオブジェクトを参照しているというセマンティクスです。従って、それ
-らは _ユニークボックス_ として参照されます。全てのタスクはこのヒープ上にオブジ
-ェクトを割り当て、高価なコピーを避けて他のタスクへ所有権を転送できます。
+このため、 Rust はグローバルな _交換ヒープ (exchange heap)_ を採用します。交換
+ヒープに割り当てられたオブジェクトは _ownerwhip semantics_ を持ちます。これはオ
+ブジェクトを参照している変数が一つだけ存在する、というセマンティクスです。従っ
+て、それらは _ユニークボックス_ として参照されます。全てのタスクはこのヒープ上
+にオブジェクトを割り当て、高価なコピーを避けて他のタスクへ所有権を転送できます。
 
 ## 周知事項
 
@@ -843,11 +940,11 @@ Rust には、オブジェクトを割り当てられる 3 つの領域、スタ
 
 # ボックスとポインタ
 
-多くの現代的な言語とは対照的に、レコード型や enum はヒープ上に確保したメモリへ
-のポインタとして表されません。それらは C や C++ のように直接に表されます。これ
-は `let x = {x: 1f, y: 1f};` と記述したら、スタック上にレコードが作られることを
-意味します。それをデータ構造へコピーしたら、ポインタではなくレコード全体がコピー
-されます。
+多くの現代的な言語とは対照的に、 Rust ではレコード型や enum のような複合型は、
+ヒープ上に確保したメモリへのポインタとして表現され _ません_ 。それらは C や C++
+と同様に、直接に表現されます。これは `let x = {x: 1f, y: 1f};` と記述したら、ス
+タック上にレコードが作られることを意味します。それをデータ構造へコピーしたら、
+ポインタではなくレコード全体がコピーされます。
 
 `point` のような小さなレコードは、通常メモリを (ヒープ上に) 確保してポインタ経
 由で使うより効率的です。しかし大きなレコードや変更可能なフィールドを持つレコー
@@ -967,8 +1064,6 @@ fn increase_contents(pt: @mut int) {
 
 # ベクトル
 
-## 文字列
-
 ## ベクトルと文字列のメソッド
 
 # クロージャ
@@ -981,7 +1076,7 @@ fn increase_contents(pt: @mut int) {
 let foo = 10;
 
 fn bar() -> int {
-   ret foo; // `bar` cannot refer to `foo`
+   return foo; // `bar` cannot refer to `foo`
 }
 ~~~~
 
@@ -989,11 +1084,11 @@ Rust は _クロージャ_ もサポートしています。クロージャと�
 ープ内の変数にアクセスできる関数です。
 
 ~~~~
-# import println = io::println;
+# use println = io::println;
 fn call_closure_with_ten(b: fn(int)) { b(10); }
 
 let captured_var = 20;
-let closure = |arg| println(#fmt("captured_var=%d, arg=%d", captured_var, arg));
+let closure = |arg| println(fmt!("captured_var=%d, arg=%d", captured_var, arg));
 
 call_closure_with_ten(closure);
 ~~~~
@@ -1034,10 +1129,10 @@ let mut max = 0;
 それを呼び出します。
 
 ~~~~
-use std;
+extern mod std;
 
 fn mk_appender(suffix: ~str) -> fn@(~str) -> ~str {
-    ret fn@(s: ~str) -> ~str { s + suffix };
+    return fn@(s: ~str) -> ~str { s + suffix };
 }
 
 fn main() {
@@ -1053,7 +1148,7 @@ fn main() {
 
 ~~~~
 fn mk_appender(suffix: ~str) -> fn@(~str) -> ~str {
-    ret |s| s + suffix;
+    return |s| s + suffix;
 }
 ~~~~
 
@@ -1107,7 +1202,7 @@ fn each(v: ~[int], op: fn(int)) {
 # fn each(v: ~[int], op: fn(int)) {}
 # fn do_some_work(i: int) { }
 each(~[1, 2, 3], |n| {
-    #debug("%i", n);
+    debug!("%i", n);
     do_some_work(n);
 });
 ~~~~
@@ -1119,7 +1214,7 @@ each(~[1, 2, 3], |n| {
 # fn each(v: ~[int], op: fn(int)) {}
 # fn do_some_work(i: int) { }
 do each(~[1, 2, 3]) |n| {
-    #debug("%i", n);
+    debug!("%i", n);
     do_some_work(n);
 }
 ~~~~
@@ -1131,10 +1226,10 @@ do each(~[1, 2, 3]) |n| {
 `do` はタスクを生成するためによく用いられます。
 
 ~~~~
-import task::spawn;
+use task::spawn;
 
 do spawn() || {
-    #debug("I'm a task, whatever");
+    debug!("I'm a task, whatever");
 }
 ~~~~
 
@@ -1142,9 +1237,9 @@ do spawn() || {
 数リストを構成しています。これらが存在しなかったら素晴らしいに違いありません。
 
 ~~~~
-# import task::spawn;
+# use task::spawn;
 do spawn {
-   #debug("Kablam!");
+   debug!("Kablam!");
 }
 ~~~~
 
@@ -1154,7 +1249,7 @@ do spawn {
 
 Rust でのほとんどのイテレーションは `for` ループで行われます。 `do` のように、
 `for` はクロージャでフローを制御するための素敵な構文です。加えて、 `for` ループ
-内では `while` や `loop` と同じように `break`, `again`, `ret` が使えます。
+内では `while` や `loop` と同じように `break`, `again`, `return` が使えます。
 
 `each` 関数を再び考えましょう。今回は iteratee が `false` を返したら、すぐにル
 ープを抜け出すように改善します。
@@ -1174,8 +1269,8 @@ fn each(v: ~[int], op: fn(int) -> bool) {
 そして、ベクタをイテレーションするためにこの関数を使います。
 
 ~~~~
-# import each = vec::each;
-# import println = io::println;
+# use each = vec::each;
+# use println = io::println;
 each(~[2, 4, 8, 5, 16], |n| {
     if n % 2 != 0 {
         println(~"found odd number!");
@@ -1190,8 +1285,8 @@ each(~[2, 4, 8, 5, 16], |n| {
 `again` と記述します。
 
 ~~~~
-# import each = vec::each;
-# import println = io::println;
+# use each = vec::each;
+# use println = io::println;
 for each(~[2, 4, 8, 5, 16]) |n| {
     if n % 2 != 0 {
         println(~"found odd number!");
@@ -1201,47 +1296,37 @@ for each(~[2, 4, 8, 5, 16]) |n| {
 ~~~~
 
 加えて、 `for` ループの本体として現れるブロック内では、通常クロージャ内では許さ
-れない `ret` キーワードも使えます。これは単にループ本体から抜けるだけではなく、
-外側の関数から戻ります。
+れない `return` キーワードも使えます。これは単にループ本体から抜けるだけではな
+く、外側の関数から戻ります。
 
 ~~~~
-# import each = vec::each;
+# use each = vec::each;
 fn contains(v: ~[int], elt: int) -> bool {
     for each(v) |x| {
-        if (x == elt) { ret true; }
+        if (x == elt) { return true; }
     }
     false
 }
 ~~~~
 
-`for` 構文はスタッククロージャとのみ働きます。
-
-# クラス
-
-# 引数渡し
-
-## Safe reference
-
-## safe references の他の利用
-
-## 引数渡しのスタイル
+`for` 構文はスタッククロージャでのみ働きます。
 
 # Generics
 
 ## 総称関数
 
 このチュートリアルを通して、一つのデータ型に対してのみ作用する関数を定義してき
-ました。現在は 2012 年であり、適用する型それぞれについて何度も何度も関数を定義
-することは期待されません。そこで、 Rust は関数やデータ型が型パラメタを持つこと
-を許します。
+ました。適用する型それぞれについて何度も何度も関数を定義するのは負担です。そこ
+で、 Rust は関数やデータ型が型パラメタを持つことを許します。
 
 ~~~~
-fn map<T, U>(vector: ~[T], function: fn(T) -> U) -> ~[U] {
+fn map<T, U>(vector: &[T], function: fn(T) -> U) -> ~[U] {
     let mut accumulator = ~[];
     for vector.each |element| {
         vec::push(accumulator, function(element));
     }
-    ret accumulator;
+    return accumulator;
+}
 ~~~~
 
 型パラメタとともに定義されるこの関数は、 `function` の引数型とベクタの要素型が
@@ -1252,58 +1337,20 @@ fn map<T, U>(vector: ~[T], function: fn(T) -> U) -> ~[U] {
 
 ## 総称データ型
 
-総称的な `type` と `enum` 宣言は同じパターンに従います。
+総称的な `type`, `struct`, `enum` 宣言は同じパターンに従います。
 
 ~~~~
-type circular_buf<T> = {start: uint,
-                        end: uint,
-                        buf: ~[mut T]};
+struct Stack<T> {
+    elements: ~[mut T]
+}
 
-enum option<T> { some(T), none }
+enum Maybe<T> {
+    Just(T),
+    Nothing
+}
 ~~~~
 
-そうすると、引数に `circular_buf<u8>` を取ったり、 `option<~str>` を返す関数を
-宣言できます。また関数自身が総称的なら、 `option<T>` を返すことも可能です。
-
-上述の `option` 型はコアライブラリに存在し、これは C 言語でいう null 値を取り得
-るポインタに相当するものを、 Rust プログラムで表現する方法です。素敵なのは、
-`option` 型を明示的に unpack する必要があるため、不測の null ポインタの値参照
-(dereference) が不可能になることです。
-
-## 型推論と総称性
-
-Rust の型推論器は generics とも非常にうまく機能しますが、型付けの不可能なプログ
-ラムが存在します。
-
-~~~~
-let n = option::none;
-# option::iter(n, fn&(&&x:int) {})
-~~~~
-
-`n` に対して何も行わない場合、コンパイラは `n` に型を割り当てられません。 (同じ
-ことは空のベクトル `[]` に対しても起こります) 。このようなステートメントが本当
-に必要なら、次のように記述する必要があります。
-
-~~~~
-let n2: option<int> = option::none;
-// or
-let n = option::none::<int>;
-~~~~
-
-式では `<` が既に比較演算子としての意味を持つので、総称的な値を示す名前に型を明
-示するためには、 `::<T>` と記述する必要があることに注意してください。幸いなこと
-に、これはめったに必要ありません。
-
-## 多相的なビルトイン
-
-おそらく驚くべきことに、任意の型に対して作用する二つの組み込みの操作があります。
-`log` が任意の型の値を取って出力することは、既に言及しました。
-
-より興味深いのは、 Rust が全てのデータ型の値に対し順序を定義していて、比較演算
-子 (`<`、 `>`、 `<=`、 `>=`、 `==`、 `!=`) を適用できる、ということです。
-structual な型については、比較は左から右へ行われます。つまり `~"abc" < ~"bac"`
-です (ただし、 `~"bac" < ~"ác"` であることに注意してください。なぜなら、順序付
-けは utf-8 シーケンスに対して sophistication なしに行われるからです) 。
+これらの宣言は `Stack<u8>` や `Maybe<int>` のような正当な型を生成します。
 
 ## kind
 
@@ -1320,81 +1367,59 @@ structual な型については、比較は左から右へ行われます。つ�
 // This does not compile
 fn head_bad<T>(v: ~[T]) -> T { v[0] }
 // This does
-fn head<T: copy>(v: ~[T]) -> T { v[0] }
+fn head<T: Copy>(v: ~[T]) -> T { v[0] }
 ~~~~
 
 総称関数は、 kind に適合する型でのみインスタンス化可能です。つまりリソース型に
 対して `head` を適当できません。 Rust には型制約 (type bound) として使える数種
 の kind があります。
 
-* `copy` - コピー可能な型。デストラクタを持つクラスでなく、デストラクタを持つク
+* `Copy` - コピー可能な型。デストラクタを持つクラスでなく、デストラクタを持つク
   ラスを含む型でもなければ、全ての型はコピー可能です。
-* `send` - 送信可能な型。共有ボックス、クロージャ (XXX: unique closure は OK じ
+* `Send` - 送信可能な型。共有ボックス、クロージャ (XXX: unique closure は OK じ
   ゃないの? ) 、その他ローカルヒープに割り当てられる型を含まなければ、全ての型
   は送信可能です。
-* `const` - 定数型。変更可能なフィールドや共有ボックスを含まない型です。
+* `Const` - 定数型。変更可能なフィールドや共有ボックスを含まない型です。
 
 > ***注意:*** Rust の type kind は型制約 (type bound) として使われるとき、構文
-> 的に [interface](#interface) と非常によく似ていて、便宜的に組み込みのインター
-> フェイスと考えることが可能です。実際、将来的に type kind はコンパイラが特別な
-> 知識を持つインターフェイスになるでしょう。
+> 的に [trait](#trait) と非常によく似ていて、便宜的に組み込みの trait と考える
+> ことが可能です。実際、将来的に type kind はコンパイラが特別な知識を持つ trait
+> になるでしょう。
 
-## 総称関数と引数渡し
+# trait
 
-# モジュールと crate
-
-## ローカルモジュール
-
-## crate
-
-## Using other crates
-
-## コアライブラリ
-
-## ミニマルな例
-
-## インポート
-
-## エクスポート
-
-## ネームスペース
-
-## (名前) 解決
-
-# インターフェイス
-
-インターフェイスは、オブジェクト指向言語がメソッドと継承を用いて解決する、値多
-相 (value polymorphism) に対する Rust の答えです。例えば、複数のコレクション型
-に作用する関数を書くのに用います。
+trait は、オブジェクト指向言語がメソッドと継承を用いて解決する、値多相 (value
+polymorphism) に対する Rust の答えです。例えば、複数のコレクション型に作用する
+関数を書くのに用います。
 
 > ***注意:*** この機能はとても新しく、より進んだ使い方に適用するには少し拡張が
 > 必要でしょう。
 
 ## 宣言
 
-インターフェイスはメソッドの集合で構成されます。メソッドはドット記法
-`self.foo(arg1, arg2)` を使って、値 `self` と複数の引数に対して適用できます。
+trait はメソッドの集合で構成されます。メソッドはドット記法 `self.foo(arg1,
+arg2)` を使って、値 `self` と複数の引数に対して適用できます。
 
-例えば文字列に変換できるオブジェクトのために、一つの (インターフェイス名と同名
-の) メソッド `to_str` を持つインターフェイス `to_str` を宣言できます。
+例えば文字列に変換できるオブジェクトのために、trait と同じ名前のメソッド
+`to_str` を一つ持つ trait `to_str` を宣言できます。
 
 ~~~~
-iface to_str {
+trait to_str {
     fn to_str() -> ~str;
 }
 ~~~~
 
 ## 実装
 
-実際に型にインターフェイスを実装するためには、 `impl` 形式を使います。次の例は
-`int` と `~str` 型に `to_str` の実装を定義します。
+実際に型に trait を実装するためには、 `impl` 形式を使います。次の例は `int` と
+`~str` 型に `to_str` の実装を定義します。
 
 ~~~~
-# iface to_str { fn to_str() -> ~str; }
-impl of to_str for int {
+# trait to_str { fn to_str() -> ~str; }
+impl int: to_str {
     fn to_str() -> ~str { int::to_str(self, 10u) }
 }
-impl of to_str for ~str {
+impl ~str: to_str {
     fn to_str() -> ~str { self }
 }
 ~~~~
@@ -1403,21 +1428,6 @@ impl of to_str for ~str {
 `(~"foo").to_str()` を呼び出すと `~"foo"` が得られます。これは基本的に静的な多
 重定義の一種です。 Rust は `to_str` メソッドの呼び出しを見つけると、名前の一致
 するメソッドを持ち、型の一致する実装を探し出して、単純にそれを呼び出します。
-
-## スコープ
-
-実装はグローバルには可視になりません。メソッドが実装へと解決されるには、実装が
-スコープ内に存在する必要があります。実装したインターフェイスの名前を使うことで、
-実装をインポートおよびエクスポートできます (同じ名前を持つ複数の実装は、問題な
-く同スコープ内に存在できます) 。もしくは、実装に明示的に名前を与えることもでき
-ます。
-
-~~~~
-# iface to_str { fn to_str() -> ~str; }
-impl nil_to_str of to_str for () {
-    fn to_str() -> ~str { ~"()" }
-}
-~~~~
 
 ## 制約付き型パラメタ
 
@@ -1428,7 +1438,7 @@ impl nil_to_str of to_str for () {
 (bound) 」を明示できます。
 
 ~~~~
-# iface to_str { fn to_str() -> ~str; }
+# trait to_str { fn to_str() -> ~str; }
 fn comma_sep<T: to_str>(elts: ~[T]) -> ~str {
     let mut result = ~"", first = true;
     for elts.each |elt| {
@@ -1436,27 +1446,27 @@ fn comma_sep<T: to_str>(elts: ~[T]) -> ~str {
         else { result += ~", "; }
         result += elt.to_str();
     }
-    ret result;
+    return result;
 }
 ~~~~
 
 この構文は型パラメタがコピー可能 (原理上は別の種類の制約) である明示する構文と
-似ています。 `T` がインターフェイス `to_str` に適合すると宣言することで、関数内
-でその型の値に対してインターフェイスからメソッドを呼び出すことが可能になります。
-また、要素の型がスコープ内で `to_str` の実装を持たない配列に対して `comma_sep`
-を呼び出そうとすると、コンパイルエラーを引き起こします。
+似ています。 `T` が trait `to_str` に適合すると宣言することで、関数内でその型の
+値に対して trait からメソッドを呼び出すことが可能になります。また、要素の型がス
+コープ内で `to_str` の実装を持たない配列に対して `comma_sep` を呼び出そうとする
+と、コンパイルエラーを引き起こします。
 
-## 多相インターフェイス
+## 多相的な trait
 
-インターフェイスは型パラメタを含むことができます。次の例は一般化されたシーケン
-ス型のインターフェイスを定義します。
+trait は型パラメタを含むことができます。一般化されたシーケンス型の trait は次の
+ように記述します。
 
 ~~~~
-iface seq<T> {
+trait seq<T> {
     fn len() -> uint;
     fn iter(fn(T));
 }
-impl <T> of seq<T> for ~[T] {
+impl<T> ~[T]: seq<T> {
     fn len() -> uint { vec::len(self) }
     fn iter(b: fn(T)) {
         for self.each |elt| { b(elt); }
@@ -1464,21 +1474,51 @@ impl <T> of seq<T> for ~[T] {
 }
 ~~~~
 
-実装では、インターフェイス型を指定するためにパラメタ `T` を使う前に、 `T` を明
+実装は、インターフェイス型を指定するためにパラメタ `T` を使う前に、 `T` を明
 示的に宣言する必要があることに注意してください。これは例えば、 `of` 節が型を指
 定するのではなく参照する `seq<int>` の実装を指定することも可能なため、必要とな
 ります。
 
-## インターフェイス型へのキャスト
+The implementation has to explicitly declare the type parameter that it binds,
+`T`, before using it to specify its trait type. Rust requires this declaration
+because the `impl` could also, for example, specify an implementation of
+`seq<int>`. The trait type -- appearing after the colon in the `impl` --
+*refers* to a type, rather than defining one.
 
-上述の方法で、与えられたインターフェイスに適合する*単一の*不明な型を持つ値に対
-して、多相的に振る舞う関数を定義できます。しかし、次の関数について考えてくださ
-い。
+The type parameters bound by a trait are in scope in each of the
+method declarations. So, re-declaring the type parameter
+`T` as an explicit type parameter for `len` -- in either the trait or
+the impl -- would be a compile-time error.
+
+## The `self` type in traits
+
+In a trait, `self` is a special type that you can think of as a
+type parameter. An implementation of the trait for any given type
+`T` replaces the `self` type parameter with `T`. The following
+trait describes types that support an equality operation:
+
+~~~~
+trait eq {
+  fn equals(&&other: self) -> bool;
+}
+
+impl int: eq {
+  fn equals(&&other: int) -> bool { other == self }
+}
+~~~~
+
+Notice that `equals` takes an `int` argument, rather than a `self` argument, in
+an implementation for type `int`.
+
+## trait 型へのキャスト
+
+上述の方法で、与えられた trait に適合する*単一の*不明な型を持つ値に対して、多相
+的に振る舞う関数を定義できます。しかし、次の関数について考えてください。
 
 ~~~~
 # type circle = int; type rectangle = int;
-# iface drawable { fn draw(); }
-# impl of drawable for int { fn draw() {} }
+# trait drawable { fn draw(); }
+# impl int: drawable { fn draw() {} }
 # fn new_circle() -> int { 1 }
 fn draw_all<T: drawable>(shapes: ~[T]) {
     for shapes.each |shape| { shape.draw(); }
@@ -1487,35 +1527,32 @@ fn draw_all<T: drawable>(shapes: ~[T]) {
 # draw_all(~[c]);
 ~~~~
 
-この関数は circle の配列や square の配列 (適切な `drawable` インターフェイスが
-定義されていると仮定します) に対して呼び出せます。しかし circle と square 両方
-を含む配列に対しては呼び出せません。
+この関数は circle の配列や square の配列 (適切な `drawable` trait が定義されて
+いると仮定します) に対して呼び出せます。しかし circle と square 両方を含む配列
+に対しては呼び出せません。
 
-これが必要な場合、インターフェイスの名前を型として使うことが可能で、関数は単純
-に、次のように記述することになります。
+これが必要な場合、 trait の名前を型として使うことが可能で、関数は単純に、次のよ
+うに記述することになります。
 
 ~~~~
-# iface drawable { fn draw(); }
+# trait drawable { fn draw(); }
 fn draw_all(shapes: ~[drawable]) {
     for shapes.each |shape| { shape.draw(); }
 }
 ~~~~
 
 もはや型パラメタはありません (関数を適用する単一の型がないため) 。代わりに
-`drawable` が、 `drawable` の実装が存在する値と、その実装に対応するメソッドを探
-索する場所の情報を含む、参照カウントされるボックスを参照する型として使われます
-(XXX: 訳悪) 。これは多くのオブジェクト指向言語での 'vtable' (仮想関数テーブル)
-に、非常によく似ています。
+`drawable` 型が使われます。この型は参照カウントされるボックス型で、 `drawable`
+の実装が存在する値と、メソッドを探索する場所の情報を含みます。これは多くのオブ
+ジェクト指向言語での 'vtable' (仮想関数テーブル) に、非常によく似ています。
 
-(訳注: メモリレイアウトは `@(\*vtable, value)` みたいな感じだと思われる。要確認)
-
-このような値を構築するためには、値をインターフェイス型にキャストする `as` 演算
-子を使います。
+このような値を構築するためには、値を trait 型にキャストする `as` 演算子を使いま
+す。
 
 ~~~~
 # type circle = int; type rectangle = int;
-# iface drawable { fn draw(); }
-# impl of drawable for int { fn draw() {} }
+# trait drawable { fn draw(); }
+# impl int: drawable { fn draw() {} }
 # fn new_circle() -> int { 1 }
 # fn new_rectangle() -> int { 2 }
 # fn draw_all(shapes: ~[drawable]) {}
@@ -1532,28 +1569,12 @@ draw_all(~[c as drawable, r as drawable]);
 ボックスの割り当ては、単純に型パラメタを使って値をそのまま渡すより少し高価で、
 静的に解決されるメソッド呼び出しよりずっと高価です。
 
-## インターフェイスなしの実装
+## trait のない実装
 
-# Interacting with foreign code
-
-## Foreign modules
-
-## Foreign calling conventions
-
-## Unsafe pointers
-
-## Unsafe blocks
-
-## Pointer fiddling
-
-## Passing structures
-
-# Tasks
-
-## Spawning a task
-
-## Ports and channels
-
-## Creating a task with a bi-directional communication path
-
-# Testing
+If you only intend to use an implementation for static overloading,
+and there is no trait available that it conforms to, you are free
+to leave off the type after the colon.  However, this is only possible when you
+are defining an implementation in the same module as the receiver
+type, and the receiver type is a named type (i.e., an enum or a
+class); [single-variant enums](#single_variant_enum) are a common
+choice.
