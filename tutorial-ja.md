@@ -31,8 +31,8 @@ of time compilation) されます。
   ロージャを返すことが可能です。 Rust のクロージャはとてもパワフルで、いたる所
   で使われます。
 * ***trait 多相性。*** Rust の型システムは _trait_ と呼ばれる、 Java スタイルの
-  インターフェイスと Haskell スタイルの型クラスのユニークな組み合わせを特徴とし
-  ています。
+  インターフェイスと、 Haskell スタイルの型クラスのユニークな組み合わせを特徴と
+  しています。
 * ***パラメータ多相性 (generics) 。*** 関数と型は、オプショナルな型制約を伴う型
   変数でパラメータ化できます。
 * ***型推論。*** ローカル変数の宣言での型注釈 (type annotation) は省略可能です。
@@ -278,8 +278,8 @@ expression) セミコロンが必要です。 `while` ループは終端に式�
 
 Rust の識別子は C と同じ規則に従います。つまり、アルファベットかアンダースコア
 から始まり、その後はアルファベット、数字、またはアンダースコアの列を含むことが
-可能です。関数、変数、モジュール名は小文字で始め、可読性を助けるところでアンダ
-ースコアを用い、一方で型は大文字で始めるのが、好まれるスタイルです。
+可能です。関数、変数、モジュール名は小文字で始め、可読性を助ける箇所でアンダー
+スコアを用い、一方で型は大文字で始めるのが、推奨されるスタイルです。
 
 ダブルコロン (`::`) はモジュールセパレータとして使われます。なので、
 `io::println` は「 `io` という名前のモジュール内にある、 `println` という名前の
@@ -315,64 +315,63 @@ let my_favorite_value: int = my_favorite_value as int;
 基本型は次のように記述します。
 
 `()`
-  : Nil, the type that has only a single value.
+  : Nil, 一つの値だけを持つ型。
 
 `bool`
-  : Boolean type, with values `true` and `false`.
+  : 値 `true` と `false` からなるブール型。
 
 `int`
-  : A machine-pointer-sized integer.
+  : マシンポインタの大きさを持つ整数。
 
 `uint`
-  : A machine-pointer-sized unsigned integer.
+  : マシンポインタの大きさを持つ符号無し整数。
 
 `i8`, `i16`, `i32`, `i64`
-  : Signed integers with a specific size (in bits).
+  : 指定された大きさ (bit) を持つ符号付き整数。
 
 `u8`, `u16`, `u32`, `u64`
-  : Unsigned integers with a specific size.
+  : 指定された大きさを持つ符号無し整数。
 
 `float`
-  : The largest floating-point type efficiently supported on the target
-    machine.
+  : ターゲットマシンで効率的にサポートされる最大の浮動小数点数型。
 
 `f32`, `f64`
-  : Floating-point types with a specific size.
+  : 指定された大きさを持つ浮動小数点数型。
 
 `char`
-  : A Unicode character (32 bits).
+  : ユニコード文字 (32 bits) 。
 
 これらは複合型 (詳細は後述) と組み合わせられます。ここで `T` は任意の型を表しま
 す。
 
 `[T * N]`
-  : Vector (like an array in other languages) with N elements.
+  : N 個の要素を持つベクタ (他の言語での配列) 。
 
 `[mut T * N]`
-  : Mutable vector with N elements.
+  : N 個の要素を持つ変更可能なベクタ。
 
 `(T1, T2)`
-  : Tuple type. Any arity above 1 is supported.
+  : タプル型。 1 より大きい項数がサポートされます。
 
 `@T`, `~T`, `&T`
-  : Pointer types. See [Boxes and pointers](#boxes-and-pointers) for an explanation of what `@`, `~`, and `&` mean.
+  : ポインタ型。 `@`, `~`, `&` が何を意味するかの説明は
+    [Boxes and pointers](#boxes-and-pointers) を見てください。
 
-Some types can only be manipulated by pointer, never directly. For instance,
-you cannot refer to a string (`str`); instead you refer to a pointer to a
-string (`@str`, `~str`, or `&str`). These *dynamically-sized* types consist
-of:
+直接には扱えず、ポインタによってのみ扱える型が存在します。例えば、文字列
+(`str`) を直接使うことはできず、代わりに文字列へのポインタ (`@str`, `~str`, or
+`&str`) を使います。これらの*動的な大きさ*を持つ型は、次から構成されます。
 
 `fn(arg1: T1, arg2: T2) -> T3`
-  : Function types.
+  : 関数型。
 
 `str`
-  : String type (in UTF-8).
+  : 文字列型 (UTF-8) 。
 
 `[T]`
-  : Vector with unknown size (also called a slice).
+  : 不明な大きさを持つベクタ (スライスとも呼ばれます) 。
 
 `[mut T]`
-  : Mutable vector with unknown size.
+  : 不明な大きさを持つ変更可能なベクタ。
 
 型は `type` 宣言により名前を与えることが可能です。
 
@@ -1458,7 +1457,7 @@ fn comma_sep<T: to_str>(elts: ~[T]) -> ~str {
 
 ## 多相的な trait
 
-trait は型パラメタを含むことができます。一般化されたシーケンス型の trait は次の
+trait は型パラメタを含むことが可能です。一般化されたシーケンス型の trait は次の
 ように記述します。
 
 ~~~~
@@ -1474,28 +1473,21 @@ impl<T> ~[T]: seq<T> {
 }
 ~~~~
 
-実装は、インターフェイス型を指定するためにパラメタ `T` を使う前に、 `T` を明
-示的に宣言する必要があることに注意してください。これは例えば、 `of` 節が型を指
-定するのではなく参照する `seq<int>` の実装を指定することも可能なため、必要とな
-ります。
+実装は、 trait type を指定するために型パラメタ `T` を使う前に、 `T` を明示的に
+宣言する必要があります。 Rust がこの宣言を必要とするのは、 `impl` が例えば
+`seq<int>` の実装を指定することも可能だからです。 (`impl` のコロンの後ろに現れ
+る) trait type は、型を定義するのではなく*参照*します。
 
-The implementation has to explicitly declare the type parameter that it binds,
-`T`, before using it to specify its trait type. Rust requires this declaration
-because the `impl` could also, for example, specify an implementation of
-`seq<int>`. The trait type -- appearing after the colon in the `impl` --
-*refers* to a type, rather than defining one.
+trait によって束縛される型パラメタは、各メソッド宣言のスコープに存在します (The
+type parameters bound by a trait are in scope in each of the method
+declarations) 。従って、 (trait と impl のどちらかで)  `T` を `len` のための明
+示的な型パラメタとして再宣言すると、コンパイルエラーになります。
 
-The type parameters bound by a trait are in scope in each of the
-method declarations. So, re-declaring the type parameter
-`T` as an explicit type parameter for `len` -- in either the trait or
-the impl -- would be a compile-time error.
+## trait 内での `self` 型
 
-## The `self` type in traits
-
-In a trait, `self` is a special type that you can think of as a
-type parameter. An implementation of the trait for any given type
-`T` replaces the `self` type parameter with `T`. The following
-trait describes types that support an equality operation:
+trait 内では、型パラメタと見なせる特殊な型 `self` が存在します。任意の型 `T` に
+対する trait の実装は `self` 型パラメタを `T` に置き換えます。次の trait は、等
+値性演算をサポートする型を記述します。
 
 ~~~~
 trait eq {
@@ -1507,8 +1499,8 @@ impl int: eq {
 }
 ~~~~
 
-Notice that `equals` takes an `int` argument, rather than a `self` argument, in
-an implementation for type `int`.
+型 `int` のための実装で、 `equals` が `self` 引数ではなく `int` 引数をとること
+に注意してください。
 
 ## trait 型へのキャスト
 
@@ -1571,10 +1563,8 @@ draw_all(~[c as drawable, r as drawable]);
 
 ## trait のない実装
 
-If you only intend to use an implementation for static overloading,
-and there is no trait available that it conforms to, you are free
-to leave off the type after the colon.  However, this is only possible when you
-are defining an implementation in the same module as the receiver
-type, and the receiver type is a named type (i.e., an enum or a
-class); [single-variant enums](#single_variant_enum) are a common
-choice.
+静的な多重定義のためだけに実装を使うつもりで、適合する trait もない場合、コロン
+の後ろの型を記述しなくても構いません。ただし、これはレシーバ型と同じモジュール
+で実装を定義し、レシーバ型が名前のある型 (つまり enum または class) である場合
+にのみ可能です。 [single-variant enums](#single_variant_enum) が一般的な選択肢
+です。
