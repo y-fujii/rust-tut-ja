@@ -34,6 +34,11 @@ blockquote {
     border-left: solid 2px silver;
 }
 
+em, strong {
+	font-weight: bold;
+	font-style: normal;
+}
+
 #TOC li {
 	list-style-type: none;
 }
