@@ -6,7 +6,7 @@ body {
 }
 
 pre, code {
-	font-family: this_is_a_workaround, monospace;
+	font-family: Inconsolata, monospace;
 	line-height: 1.2;
 }
 
@@ -32,6 +32,10 @@ blockquote {
     margin: 1em 0em;
     padding-left: 1em;
     border-left: solid 2px silver;
+}
+
+#TOC li {
+	list-style-type: none;
 }
 
 /* End Japanese specific */
